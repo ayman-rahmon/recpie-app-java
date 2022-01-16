@@ -33,11 +33,13 @@ public class RecipeListActivity extends BaseActivity {
         findViewById(R.id.test).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(mProgressBar.getVisibility() == View.VISIBLE){
-                    showProgressBar(false);
-                }else{
-                    showProgressBar(true);
-                }
+                // testing search call...
+                testRecipeSearch();
+
+                // testing recipe call...
+                testGetRecipe();
+
+
             }
         });
     }
