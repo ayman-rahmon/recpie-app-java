@@ -60,7 +60,7 @@ public class RecipeAPIClient {
                 // TODO(1) ==> let the user know it has timed out...
                 handler.cancel(true);
             }
-        } , NETWORK_TIMEOUT , TimeUnit.MICROSECONDS);
+        } , NETWORK_TIMEOUT , TimeUnit.MILLISECONDS);
     }
 
 
@@ -80,9 +80,11 @@ public class RecipeAPIClient {
         public void run() {
             try {
                 Response response = getRecipes(query , pageNo ).execute() ;
-                if(cancelRequest)
-                    return ;
+                if(cancelRequest) {
+                    return;
+                }
                 if(response.code() == 200){
+                    Log.d(TAG ,"code is 200" + "response : " + response.body().toString()  );
                     List<Recipe> list = new ArrayList<>(((RecipeSearchResponse)response.body()).getRecipes());
                     if(pageNo == 1) {
                         mRecipes.postValue(list);
@@ -93,11 +95,12 @@ public class RecipeAPIClient {
                     }
                 }else{
                     String error = response.errorBody().string();
-                    Log.e(TAG , "run: " + error);
+                    Log.e(TAG , "run: error " + error);
                     mRecipes.postValue(null);
                 }
             } catch (IOException e) {
                 e.printStackTrace();
+                Log.e(TAG , "Message :"+e.getMessage()  + "code : " + e.getCause());
                 mRecipes.postValue(null);
             }
 
@@ -109,7 +112,7 @@ public class RecipeAPIClient {
 
         }
         private Call<RecipeSearchResponse> getRecipes(String query , int pageNo){
-            return ServiceGenerator.getRecipeApi().searchRecipe(Constants.BASE_URL , query , String.valueOf(pageNo));
+            return ServiceGenerator.getRecipeApi().searchRecipe(Constants.API_KEY , query , String.valueOf(pageNo));
 
         }
 

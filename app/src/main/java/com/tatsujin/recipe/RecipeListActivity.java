@@ -4,6 +4,7 @@ package com.tatsujin.recipe;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
@@ -14,6 +15,7 @@ import com.tatsujin.recipe.requests.ServiceGenerator;
 import com.tatsujin.recipe.requests.responses.RecipeResponse;
 import com.tatsujin.recipe.requests.responses.RecipeSearchResponse;
 import com.tatsujin.recipe.utils.Constants;
+import com.tatsujin.recipe.utils.Testing;
 import com.tatsujin.recipe.viewmodels.RecipeListViewModel;
 
 import java.io.IOException;
@@ -37,6 +39,14 @@ public class RecipeListActivity extends BaseActivity {
         mRecipeListViewModel = new ViewModelProvider(this).get(RecipeListViewModel.class) ;
 
         subscribeObservers();
+
+        ((Button)findViewById(R.id.test)).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                testRecipeSearch();
+            }
+        });
+
     }
 
 
@@ -44,43 +54,21 @@ public class RecipeListActivity extends BaseActivity {
         mRecipeListViewModel.getRecipes().observe(this, new Observer<List<Recipe>>() {
             @Override
             public void onChanged(List<Recipe> recipes) {
-
+                if(recipes != null){
+                    Testing.printRecipes(recipes , TAG);
+                }
             }
         });
 
     }
 
+    private void searchRecipesApi(String query , int pageNo){
+        mRecipeListViewModel.searchRecipesApi(query , pageNo);
+    }
+
+
     private void testRecipeSearch(){
-        RecipeApi recipeAPi = ServiceGenerator.getRecipeApi();
-
-        Call<RecipeSearchResponse> responseCall = recipeAPi.searchRecipe(Constants.API_KEY, "chicken breast" , "1");
-
-        responseCall.enqueue(new Callback<RecipeSearchResponse>() {
-            @Override
-            public void onResponse(Call<RecipeSearchResponse> call, Response<RecipeSearchResponse> response) {
-                Log.d(TAG , "onResponse::Server-Search::" + response.body().toString());
-                if(response.code() ==200){
-                    Log.d(TAG , "onResponse::Search::" + response.body().getRecipes().toString());
-                    List<Recipe> recipes = new ArrayList<>(response.body().getRecipes());
-                    for(Recipe recipe : recipes){
-                        Log.d(TAG , "onResponse: "+ recipe.getTitle());
-                    }
-                }else{
-                    try{
-                        Log.d(TAG , "onResponse: "+ response.errorBody().string());
-                    }catch(IOException ioe){
-                        ioe.printStackTrace();
-                    }
-                }
-
-            }
-
-            @Override
-            public void onFailure(Call<RecipeSearchResponse> call, Throwable t) {
-
-            }
-        });
-
+        searchRecipesApi("chicken breast" ,1 );
     }
 
 

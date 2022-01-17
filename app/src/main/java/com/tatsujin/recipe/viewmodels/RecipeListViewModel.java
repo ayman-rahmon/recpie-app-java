@@ -19,5 +19,8 @@ public class RecipeListViewModel extends ViewModel {
 
     public LiveData<List<Recipe>> getRecipes(){return mRecipeRepository.getRecipes();}
 
+    public void searchRecipesApi(String query , int pageNo){
+        mRecipeRepository.searchRecipesApi(query , pageNo);
+    }
 
 }
