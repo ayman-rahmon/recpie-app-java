@@ -7,6 +7,6 @@ public class Constants {
     public static String API_KEY = "" ;
 
 
-
+    public static final int NETWORK_TIMEOUT = 3000 ;
 
 }

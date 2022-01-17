@@ -5,12 +5,16 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProvider;
+
 import com.tatsujin.recipe.models.Recipe;
 import com.tatsujin.recipe.requests.RecipeApi;
 import com.tatsujin.recipe.requests.ServiceGenerator;
 import com.tatsujin.recipe.requests.responses.RecipeResponse;
 import com.tatsujin.recipe.requests.responses.RecipeSearchResponse;
 import com.tatsujin.recipe.utils.Constants;
+import com.tatsujin.recipe.viewmodels.RecipeListViewModel;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -23,33 +27,33 @@ import retrofit2.Response;
 public class RecipeListActivity extends BaseActivity {
 
     private static final String TAG = "RecipeListActivity";
-
+    private RecipeListViewModel mRecipeListViewModel ;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_recipe_list);
 
-        findViewById(R.id.test).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                // testing search call...
-                testRecipeSearch();
+        mRecipeListViewModel = new ViewModelProvider(this).get(RecipeListViewModel.class) ;
 
-                // testing recipe call...
-                testGetRecipe();
-
-
-            }
-        });
+        subscribeObservers();
     }
 
 
+    private void subscribeObservers(){
+        mRecipeListViewModel.getRecipes().observe(this, new Observer<List<Recipe>>() {
+            @Override
+            public void onChanged(List<Recipe> recipes) {
+
+            }
+        });
+
+    }
 
     private void testRecipeSearch(){
         RecipeApi recipeAPi = ServiceGenerator.getRecipeApi();
 
-        Call<RecipeSearchResponse> responseCall = recipeAPi.searchRecipe(Constants.API_KEY, "chicke breast" , "1");
+        Call<RecipeSearchResponse> responseCall = recipeAPi.searchRecipe(Constants.API_KEY, "chicken breast" , "1");
 
         responseCall.enqueue(new Callback<RecipeSearchResponse>() {
             @Override
@@ -87,10 +91,10 @@ public class RecipeListActivity extends BaseActivity {
             recipeResponseCall.enqueue(new Callback<RecipeResponse>() {
                 @Override
                 public void onResponse(Call<RecipeResponse> call, Response<RecipeResponse> response) {
-                    Log.d(TAG , "onResponse-Server-recipe" + response.body().toString() );
+                    Log.d(TAG , "onResponse-Server-recipe" + response.toString() );
                     if(response.code() == 200){
                         Recipe recipe = response.body().getRecipe() ;
-                        Log.d(TAG , "onResponse-Recipe :"+ recipe);
+                        Log.d(TAG , "onResponse-Recipe :"+ recipe.toString());
                     }else{
                         try{
                             Log.e(TAG , "onResponse: " + response.errorBody().string());
