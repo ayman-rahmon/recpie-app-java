@@ -35,6 +35,7 @@
                     android:layout_height="wrap_content"
                     android:textSize="@dimen/recipe_title_text_size"
                     android:textColor="#000"
+                    android:text="hello there..."
                     android:id="@+id/recipe_title"/>
 
                 <LinearLayout

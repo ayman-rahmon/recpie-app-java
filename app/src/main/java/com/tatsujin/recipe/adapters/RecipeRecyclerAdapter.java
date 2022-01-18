@@ -1,6 +1,7 @@
 package com.tatsujin.recipe.adapters;
 
 import android.app.DownloadManager;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,7 +18,7 @@ import java.util.List;
 
 public class RecipeRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
-
+    private static final String TAG = "RecipeRecyclerAdapter";
     private List<Recipe> mRecipes ;
 
     private onRecipeListener mOnRecipeListener ;
@@ -30,8 +31,7 @@ public class RecipeRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.Vie
     @NonNull
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.activity_recipe_list,parent, false);
-
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.layout_recipe_list_item,parent, false);
 
 
         return new RecipeViewHolder(view , mOnRecipeListener);
@@ -41,6 +41,11 @@ public class RecipeRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.Vie
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
 
         RequestOptions requestOptions = new RequestOptions().placeholder(R.drawable.ic_launcher_background);
+
+//        Log.d(TAG , "image : " +mRecipes.get(position).getImage_url() );
+//        Log.d(TAG , "title : " +mRecipes.get(position).getTitle() );
+//        Log.d(TAG , "publisher : " +mRecipes.get(position).getPublisher() );
+//        Log.d(TAG , "score : " +mRecipes.get(position).getSocial_rank() );
 
         Glide.with(holder.itemView.getContext())
                 .setDefaultRequestOptions(requestOptions)

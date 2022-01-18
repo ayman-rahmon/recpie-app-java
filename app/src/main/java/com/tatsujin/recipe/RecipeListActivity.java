@@ -63,7 +63,6 @@ public class RecipeListActivity extends BaseActivity implements onRecipeListener
                 }
             }
         });
-
     }
 
     private void searchRecipesApi(String query , int pageNo){
