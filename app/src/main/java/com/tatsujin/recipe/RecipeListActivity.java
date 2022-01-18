@@ -3,52 +3,55 @@ package com.tatsujin.recipe;
 
 import android.os.Bundle;
 import android.util.Log;
-import android.view.View;
-import android.widget.Button;
 
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
+import com.tatsujin.recipe.adapters.RecipeRecyclerAdapter;
+import com.tatsujin.recipe.adapters.onRecipeListener;
 import com.tatsujin.recipe.models.Recipe;
 import com.tatsujin.recipe.requests.RecipeApi;
 import com.tatsujin.recipe.requests.ServiceGenerator;
 import com.tatsujin.recipe.requests.responses.RecipeResponse;
-import com.tatsujin.recipe.requests.responses.RecipeSearchResponse;
 import com.tatsujin.recipe.utils.Constants;
 import com.tatsujin.recipe.utils.Testing;
 import com.tatsujin.recipe.viewmodels.RecipeListViewModel;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class RecipeListActivity extends BaseActivity {
+public class RecipeListActivity extends BaseActivity implements onRecipeListener {
 
     private static final String TAG = "RecipeListActivity";
     private RecipeListViewModel mRecipeListViewModel ;
-
+    private RecyclerView mRecyclerView ;
+    private RecipeRecyclerAdapter adapter ;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_recipe_list);
-
+        mRecyclerView = findViewById(R.id.recipe_list);
         mRecipeListViewModel = new ViewModelProvider(this).get(RecipeListViewModel.class) ;
 
         subscribeObservers();
-
-        ((Button)findViewById(R.id.test)).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                testRecipeSearch();
-            }
-        });
+        initRecyclerView();
+        testRecipeSearch();
 
     }
 
+
+
+    private void initRecyclerView(){
+        adapter = new RecipeRecyclerAdapter(this);
+        mRecyclerView.setAdapter(adapter);
+        mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+    }
 
     private void subscribeObservers(){
         mRecipeListViewModel.getRecipes().observe(this, new Observer<List<Recipe>>() {
@@ -56,6 +59,7 @@ public class RecipeListActivity extends BaseActivity {
             public void onChanged(List<Recipe> recipes) {
                 if(recipes != null){
                     Testing.printRecipes(recipes , TAG);
+                    adapter.setRecipes(recipes);
                 }
             }
         });
@@ -105,4 +109,13 @@ public class RecipeListActivity extends BaseActivity {
 
     }
 
+    @Override
+    public void onRecipeClick(int position) {
+
+    }
+
+    @Override
+    public void onCategoryClick(String category) {
+
+    }
 }

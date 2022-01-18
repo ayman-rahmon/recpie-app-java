@@ -8,6 +8,8 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.RequestOptions;
 import com.tatsujin.recipe.R;
 import com.tatsujin.recipe.models.Recipe;
 
@@ -21,8 +23,7 @@ public class RecipeRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.Vie
     private onRecipeListener mOnRecipeListener ;
 
 
-    public RecipeRecyclerAdapter(List<Recipe> mRecipes, onRecipeListener mOnRecipeListener) {
-        this.mRecipes = mRecipes;
+    public RecipeRecyclerAdapter(onRecipeListener mOnRecipeListener) {
         this.mOnRecipeListener = mOnRecipeListener;
     }
 
@@ -39,18 +40,28 @@ public class RecipeRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.Vie
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
 
+        RequestOptions requestOptions = new RequestOptions().placeholder(R.drawable.ic_launcher_background);
+
+        Glide.with(holder.itemView.getContext())
+                .setDefaultRequestOptions(requestOptions)
+                .load(mRecipes.get(position).getImage_url())
+                .into(((RecipeViewHolder)holder).image);
+
         ((RecipeViewHolder)holder).title.setText(mRecipes.get(position).getTitle());
         ((RecipeViewHolder)holder).publisher.setText(mRecipes.get(position).getPublisher());
         ((RecipeViewHolder)holder).socialScore.setText(String.valueOf(Math.round(mRecipes.get(position).getSocial_rank())));
 
     }
 
-    public void setmRecipes(List<Recipe> recipes){
+    public void setRecipes(List<Recipe> recipes){
         mRecipes = recipes ;
         notifyDataSetChanged();
     }
     @Override
     public int getItemCount() {
-        return mRecipes.size();
+        if(mRecipes != null){
+            return mRecipes.size();
+        }
+        return 0 ;
     }
 }
