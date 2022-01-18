@@ -147,6 +147,7 @@ public class RecipeListActivity extends BaseActivity implements onRecipeListener
 
     @Override
     public void onCategoryClick(String category) {
-
+        adapter.displayLoading();
+        mRecipeListViewModel.searchRecipesApi(category,1);
     }
 }
