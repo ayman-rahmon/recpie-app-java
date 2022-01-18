@@ -4,6 +4,7 @@ package com.tatsujin.recipe;
 import android.os.Bundle;
 import android.util.Log;
 
+import androidx.appcompat.widget.SearchView;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -42,6 +43,13 @@ public class RecipeListActivity extends BaseActivity implements onRecipeListener
         subscribeObservers();
         initRecyclerView();
         testRecipeSearch();
+        initSearchView();
+
+
+        if(!mRecipeListViewModel.getIsViewingRecipes()){
+            // display Categories...
+            displaySearchCategories();
+        }
 
     }
 
@@ -67,6 +75,30 @@ public class RecipeListActivity extends BaseActivity implements onRecipeListener
 
     private void searchRecipesApi(String query , int pageNo){
         mRecipeListViewModel.searchRecipesApi(query , pageNo);
+    }
+
+    private void initSearchView(){
+        final SearchView searchView = findViewById(R.id.search_view);
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                adapter.displayLoading();
+                mRecipeListViewModel.searchRecipesApi(query , 1);
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+
+                return false;
+            }
+        });
+    }
+
+
+    private void displaySearchCategories(){
+        mRecipeListViewModel.setIsViewingRecipies(false);
+        adapter.displayCategories();
     }
 
 
