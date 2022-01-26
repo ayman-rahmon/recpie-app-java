@@ -1,6 +1,7 @@
 package com.tatsujin.recipe;
 
 
+import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
@@ -184,7 +185,9 @@ public class RecipeListActivity extends BaseActivity implements onRecipeListener
 
     @Override
     public void onRecipeClick(int position) {
-
+        Intent intent = new Intent(this , RecipeActivity.class);
+        intent.putExtra("recipe" , adapter.getSelectedRecipe(position));
+        startActivity(intent);
     }
 
     @Override

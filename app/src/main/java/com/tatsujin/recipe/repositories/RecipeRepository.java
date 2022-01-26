@@ -1,7 +1,6 @@
 package com.tatsujin.recipe.repositories;
 
 import androidx.lifecycle.LiveData;
-import androidx.lifecycle.MutableLiveData;
 
 import com.tatsujin.recipe.models.Recipe;
 import com.tatsujin.recipe.requests.RecipeAPIClient;
@@ -29,6 +28,9 @@ public class RecipeRepository {
     public LiveData<List<Recipe>> getRecipes() {
         return mRecipeAPIClient.getRecipes() ;
     }
+    public LiveData<Recipe> getRecipe() {
+        return mRecipeAPIClient.getRecipe();
+    }
 
     public void searchRecipesApi(String query , int pageNo){
         if(pageNo == 0){ pageNo = 1 ;}
@@ -38,10 +40,18 @@ public class RecipeRepository {
         mRecipeAPIClient.searchRecipesApi(query , pageNo);
     }
 
+    public void getDetails(String id){
+        mRecipeAPIClient.getDetails(id);
+    }
+
+    public LiveData<Boolean> isRecipeRequestTimedOut(){return mRecipeAPIClient.isRecipeRequestTimedOut() ; }
+
+
+
     public void nextPage(){
         searchRecipesApi(mQuery , mPageNo+1);
     }
     public void cancelRequest() {
-        mRecipeAPIClient.cancelRequst();
+        mRecipeAPIClient.cancelSearchRequst();
     }
 }
