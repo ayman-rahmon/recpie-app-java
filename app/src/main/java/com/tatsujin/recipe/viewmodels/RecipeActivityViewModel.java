@@ -33,6 +33,7 @@ public class RecipeActivityViewModel extends ViewModel {
     public LiveData<Boolean> isRecipeRequestTimedOut(){return mRecipeRepository.isRecipeRequestTimedOut();}
 
 
+
     public boolean ismGotRecipe() {
         return mGotRecipe;
     }

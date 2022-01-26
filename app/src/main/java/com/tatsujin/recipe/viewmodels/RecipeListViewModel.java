@@ -67,9 +67,13 @@ public class RecipeListViewModel extends ViewModel {
         Log.d(TAG,"displaying categories - on back button pressed...");
         return true ;
     }
+    public LiveData<Boolean> isQueryEchausted(){
+        return mRecipeRepository.isQueryExhausted() ;
+    }
+
 
     public void nextPage(){
-        if(!isQuerying && mIsViewingRecipies){
+        if(!isQuerying && mIsViewingRecipies && !isQueryEchausted().getValue()){
             mRecipeRepository.nextPage();
         }
     }

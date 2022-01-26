@@ -10,6 +10,7 @@
         <entry key="app/src/main/res/layout/layout_category_list_item.xml" value="0.2125" />
         <entry key="app/src/main/res/layout/layout_loading_list_item.xml" value="0.2125" />
         <entry key="app/src/main/res/layout/layout_recipe_list_item.xml" value="0.2713541666666667" />
+        <entry key="app/src/main/res/layout/layout_search_exhausted.xml" value="0.21875" />
         <entry key="app/src/main/res/menu/menu.xml" value="0.2140625" />
         <entry key="app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml" value="0.23125" />
         <entry key="app/src/main/res/xml/network_security_config.xml" value="0.2140625" />

@@ -1,6 +1,9 @@
 package com.tatsujin.recipe.repositories;
 
 import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MediatorLiveData;
+import androidx.lifecycle.MutableLiveData;
+import androidx.lifecycle.Observer;
 
 import com.tatsujin.recipe.models.Recipe;
 import com.tatsujin.recipe.requests.RecipeAPIClient;
@@ -13,6 +16,9 @@ public class RecipeRepository {
     private RecipeAPIClient mRecipeAPIClient ;
     private String mQuery ;
     private int mPageNo ;
+    private MutableLiveData<Boolean> mIsQueryExhausted= new MutableLiveData<>();
+    private MediatorLiveData<List<Recipe>> mRecipes = new MediatorLiveData<>();
+
 
     public static RecipeRepository getInstance() {
         if (instance == null) {
@@ -25,8 +31,37 @@ public class RecipeRepository {
         mRecipeAPIClient = RecipeAPIClient.getInstance() ;
     }
 
+    public LiveData<Boolean> isQueryExhausted(){
+        return this.mIsQueryExhausted ;
+    }
+
+
+    private void initMediators(){
+        LiveData<List<Recipe>> recipeListAPISource = mRecipeAPIClient.getRecipes();
+        mRecipes.addSource(recipeListAPISource, new Observer<List<Recipe>>() {
+            @Override
+            public void onChanged(List<Recipe> recipes) {
+                if(recipes != null){
+                    mRecipes.setValue(recipes);
+                    doneQuery(recipes);
+                }else{
+                    // search database cache
+                    doneQuery(null);
+                }
+            }
+        });
+    }
+    private void doneQuery(List<Recipe> list){
+        if(list != null){
+            if(list.size() % 30 != 0){
+                mIsQueryExhausted.setValue(true);
+            }
+        }else {
+            mIsQueryExhausted.setValue(true);
+        }
+    }
     public LiveData<List<Recipe>> getRecipes() {
-        return mRecipeAPIClient.getRecipes() ;
+        return mRecipes ;
     }
     public LiveData<Recipe> getRecipe() {
         return mRecipeAPIClient.getRecipe();
@@ -36,7 +71,7 @@ public class RecipeRepository {
         if(pageNo == 0){ pageNo = 1 ;}
         this.mQuery = query ;
         this.mPageNo = pageNo ;
-
+        this.mIsQueryExhausted.setValue(false); ;
         mRecipeAPIClient.searchRecipesApi(query , pageNo);
     }
 
