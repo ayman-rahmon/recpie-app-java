@@ -78,7 +78,8 @@ public class RecipeRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.Vie
             ((RecipeViewHolder) holder).socialScore.setText(String.valueOf(Math.round(mRecipes.get(position).getSocial_rank())));
         } else if (itemViewType == CATEGORIES_TYPE) {
             RequestOptions requestOption = new RequestOptions().placeholder(R.drawable.ic_launcher_background);
-            Uri path = Uri.parse("android://resource://com.tatsujin.recipe/drawable" + mRecipes.get(position).getImage_url());
+            // TODO(2) fix the uri for displaying the images properly...
+            Uri path = Uri.parse("android.resource://com.tatsujin.recipe/drawable/" + mRecipes.get(position).getImage_url());
             Glide.with(holder.itemView.getContext()).setDefaultRequestOptions(requestOption).load(path).into(((CategoryViewHolder) holder).categoryImage);
             ((CategoryViewHolder)holder).categoryTitle.setText(mRecipes.get(position).getTitle());
 
@@ -94,6 +95,8 @@ public class RecipeRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.Vie
         }
         else if (mRecipes.get(position).getTitle().equals("LOADING")) {
             return LOADING_TYPE;
+        }else if(position == mRecipes.size()-1 && position !=0 && !mRecipes.get(position).getTitle().equals("EXHAUSTED")) {
+            return LOADING_TYPE ;
         } else {
             return RECIPE_TYPE;
         }
@@ -110,6 +113,7 @@ public class RecipeRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.Vie
             categories.add(recipe);
         }
         mRecipes = categories ;
+        notifyDataSetChanged();
     }
 
     public void displayLoading() {

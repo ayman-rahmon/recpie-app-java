@@ -126,10 +126,11 @@ public class RecipeAPIClient {
 
 
 
-
-
-
-
+    public void cancelRequst(){
+        if(mRetrieveRecipesRunnable != null) {
+            mRetrieveRecipesRunnable.cancelRequest();
+        }
+    }
 
 
 }

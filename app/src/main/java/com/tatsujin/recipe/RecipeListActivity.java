@@ -1,10 +1,17 @@
 package com.tatsujin.recipe;
 
 
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.widget.SearchView;
+import androidx.appcompat.widget.Toolbar;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -18,6 +25,7 @@ import com.tatsujin.recipe.requests.ServiceGenerator;
 import com.tatsujin.recipe.requests.responses.RecipeResponse;
 import com.tatsujin.recipe.utils.Constants;
 import com.tatsujin.recipe.utils.Testing;
+import com.tatsujin.recipe.utils.VerticalSpacingItemDecorator;
 import com.tatsujin.recipe.viewmodels.RecipeListViewModel;
 
 import java.io.IOException;
@@ -33,6 +41,9 @@ public class RecipeListActivity extends BaseActivity implements onRecipeListener
     private RecipeListViewModel mRecipeListViewModel ;
     private RecyclerView mRecyclerView ;
     private RecipeRecyclerAdapter adapter ;
+    private SearchView mSearchView ;
+
+    @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -42,23 +53,37 @@ public class RecipeListActivity extends BaseActivity implements onRecipeListener
 
         subscribeObservers();
         initRecyclerView();
-        testRecipeSearch();
+//        testRecipeSearch();
         initSearchView();
-
-
+        Log.d(TAG,"is showing categories..."  + mRecipeListViewModel.getIsViewingRecipes());
         if(!mRecipeListViewModel.getIsViewingRecipes()){
-            // display Categories...
             displaySearchCategories();
         }
-
+        setSupportActionBar((Toolbar) findViewById(R.id.toolbar));
     }
 
 
 
+    @RequiresApi(api = Build.VERSION_CODES.M)
     private void initRecyclerView(){
         adapter = new RecipeRecyclerAdapter(this);
         mRecyclerView.setAdapter(adapter);
+        VerticalSpacingItemDecorator itemDecorator = new VerticalSpacingItemDecorator(30);
+        mRecyclerView.addItemDecoration(itemDecorator);
         mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+        mRecyclerView.setOnScrollChangeListener(new View.OnScrollChangeListener() {
+            @Override
+            public void onScrollChange(View view, int i, int i1, int i2, int i3) {
+
+                if(!mRecyclerView.canScrollVertically(1)){
+                    // search next result...
+                    mRecipeListViewModel.nextPage();
+                }
+
+
+
+            }
+        });
     }
 
     private void subscribeObservers(){
@@ -66,24 +91,41 @@ public class RecipeListActivity extends BaseActivity implements onRecipeListener
             @Override
             public void onChanged(List<Recipe> recipes) {
                 if(recipes != null){
-                    Testing.printRecipes(recipes , TAG);
-                    adapter.setRecipes(recipes);
+                    if(mRecipeListViewModel.getIsViewingRecipes()){
+                        Testing.printRecipes(recipes , TAG);
+                        mRecipeListViewModel.setIsQuerying(false);
+                        adapter.setRecipes(recipes);
+                    }
                 }
             }
         });
     }
 
+
+
+
     private void searchRecipesApi(String query , int pageNo){
         mRecipeListViewModel.searchRecipesApi(query , pageNo);
     }
 
+
+    @Override
+    public void onBackPressed() {
+        if(mRecipeListViewModel.onBackPressed()){
+            super.onBackPressed();
+        }else{
+         displaySearchCategories();
+        }
+    }
+
     private void initSearchView(){
-        final SearchView searchView = findViewById(R.id.search_view);
-        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+         mSearchView = findViewById(R.id.search_view);
+        mSearchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
                 adapter.displayLoading();
                 mRecipeListViewModel.searchRecipesApi(query , 1);
+                mSearchView.clearFocus();
                 return false;
             }
 
@@ -97,6 +139,7 @@ public class RecipeListActivity extends BaseActivity implements onRecipeListener
 
 
     private void displaySearchCategories(){
+        Log.d(TAG, "displaySearchCategories: called.");
         mRecipeListViewModel.setIsViewingRecipies(false);
         adapter.displayCategories();
     }
@@ -125,7 +168,6 @@ public class RecipeListActivity extends BaseActivity implements onRecipeListener
                             ioe.printStackTrace();
                         }
                     }
-
                 }
 
                 @Override
@@ -149,5 +191,23 @@ public class RecipeListActivity extends BaseActivity implements onRecipeListener
     public void onCategoryClick(String category) {
         adapter.displayLoading();
         mRecipeListViewModel.searchRecipesApi(category,1);
+        mSearchView.clearFocus();
+    }
+
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu , menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+
+        if(item.getItemId() == R.id.action_category){
+            displaySearchCategories();
+        }
+        return super.onOptionsItemSelected(item);
     }
 }
