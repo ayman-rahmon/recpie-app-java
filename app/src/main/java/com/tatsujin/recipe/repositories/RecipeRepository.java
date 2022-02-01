@@ -63,7 +63,7 @@ public class RecipeRepository {
     public LiveData<List<Recipe>> getRecipes() {
         return mRecipes ;
     }
-    public LiveData<Recipe> getRecipe() {
+    public LiveData<Recipe> getRecipe(){
         return mRecipeAPIClient.getRecipe();
     }
 
