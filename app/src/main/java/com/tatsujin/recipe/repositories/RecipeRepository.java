@@ -1,18 +1,30 @@
 package com.tatsujin.recipe.repositories;
 
+import android.content.Context;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MediatorLiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Observer;
 
 import com.tatsujin.recipe.models.Recipe;
+import com.tatsujin.recipe.persistence.RecipeDAO;
+import com.tatsujin.recipe.persistence.RecipeDatabase;
 import com.tatsujin.recipe.requests.RecipeAPIClient;
+import com.tatsujin.recipe.requests.responses.ApiResponse;
+import com.tatsujin.recipe.requests.responses.RecipeSearchResponse;
+import com.tatsujin.recipe.utils.AppExecutors;
+import com.tatsujin.recipe.utils.NetworkBoundResource;
+import com.tatsujin.recipe.utils.Resource;
 
 import java.util.List;
 
 public class RecipeRepository {
 
     private static RecipeRepository instance;
+    private RecipeDAO recipeDAO ;
     private RecipeAPIClient mRecipeAPIClient ;
     private String mQuery ;
     private int mPageNo ;
@@ -20,73 +32,42 @@ public class RecipeRepository {
     private MediatorLiveData<List<Recipe>> mRecipes = new MediatorLiveData<>();
 
 
-    public static RecipeRepository getInstance() {
+    public static RecipeRepository getInstance(Context context) {
         if (instance == null) {
-            instance = new RecipeRepository();
+            instance = new RecipeRepository(context);
         }
         return instance;
     }
 
-    private RecipeRepository() {
-        mRecipeAPIClient = RecipeAPIClient.getInstance() ;
+    private RecipeRepository(Context context){
+        recipeDAO = RecipeDatabase.getInstance(context).getRecipeDao() ;
     }
 
-    public LiveData<Boolean> isQueryExhausted(){
-        return this.mIsQueryExhausted ;
-    }
-
-
-    private void initMediators(){
-        LiveData<List<Recipe>> recipeListAPISource = mRecipeAPIClient.getRecipes();
-        mRecipes.addSource(recipeListAPISource, new Observer<List<Recipe>>() {
+    public LiveData<Resource<List<Recipe>>> searchRecipesAPI(final String query , final int pageNumber){
+        return new NetworkBoundResource<List<Recipe> , RecipeSearchResponse>(AppExecutors.getInstance()){
             @Override
-            public void onChanged(List<Recipe> recipes) {
-                if(recipes != null){
-                    mRecipes.setValue(recipes);
-                    doneQuery(recipes);
-                }else{
-                    // search database cache
-                    doneQuery(null);
-                }
+            protected void saveCallResult(@NonNull RecipeSearchResponse item) {
+
             }
-        });
-    }
-    private void doneQuery(List<Recipe> list){
-        if(list != null){
-            if(list.size() % 30 != 0){
-                mIsQueryExhausted.setValue(true);
+
+            @Override
+            protected boolean shouldFetch(@Nullable List<Recipe> data) {
+                return true;
             }
-        }else {
-            mIsQueryExhausted.setValue(true);
-        }
-    }
-    public LiveData<List<Recipe>> getRecipes() {
-        return mRecipes ;
-    }
-    public LiveData<Recipe> getRecipe(){
-        return mRecipeAPIClient.getRecipe();
+
+            @NonNull
+            @Override
+            protected LiveData<List<Recipe>> loadFromDB() {
+                return recipeDAO.searchRecipe(query,pageNumber);
+            }
+
+            @NonNull
+            @Override
+            protected LiveData<ApiResponse<RecipeSearchResponse>> createCall() {
+                return null;
+            }
+        }.getAsLiveData();
     }
 
-    public void searchRecipesApi(String query , int pageNo){
-        if(pageNo == 0){ pageNo = 1 ;}
-        this.mQuery = query ;
-        this.mPageNo = pageNo ;
-        this.mIsQueryExhausted.setValue(false); ;
-        mRecipeAPIClient.searchRecipesApi(query , pageNo);
-    }
 
-    public void getDetails(String id){
-        mRecipeAPIClient.getDetails(id);
-    }
-
-    public LiveData<Boolean> isRecipeRequestTimedOut(){return mRecipeAPIClient.isRecipeRequestTimedOut() ; }
-
-
-
-    public void nextPage(){
-        searchRecipesApi(mQuery , mPageNo+1);
-    }
-    public void cancelRequest() {
-        mRecipeAPIClient.cancelSearchRequst();
-    }
 }

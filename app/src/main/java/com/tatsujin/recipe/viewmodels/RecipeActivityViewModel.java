@@ -14,7 +14,7 @@ public class RecipeActivityViewModel extends ViewModel {
     private boolean mGotRecipe ;
 
     public RecipeActivityViewModel() {
-        mRecipeRepository = RecipeRepository.getInstance() ;
+//        mRecipeRepository = RecipeRepository.getInstance() ;
         this.mGotRecipe = false ;
     }
 

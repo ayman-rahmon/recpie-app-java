@@ -1,8 +1,11 @@
 package com.tatsujin.recipe.viewmodels;
 
+import android.app.Application;
 import android.util.Log;
 
+import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
 import com.tatsujin.recipe.models.Recipe;
@@ -10,72 +13,27 @@ import com.tatsujin.recipe.repositories.RecipeRepository;
 
 import java.util.List;
 
-public class RecipeListViewModel extends ViewModel {
+public class RecipeListViewModel extends AndroidViewModel {
 
-
-    private RecipeRepository mRecipeRepository;
-    private boolean mIsViewingRecipies ;
-    private boolean isQuerying ;
     private static final String TAG = "RecipeListViewModel";
+    public enum ViewState {CATEGORIES , RECIPES} ;
+    private MutableLiveData<ViewState> viewState ;
 
-
-
-    public RecipeListViewModel() {
-        mRecipeRepository = RecipeRepository.getInstance() ;
-//        this.mIsViewingRecipies = false ;
-        this.isQuerying = false ;
+    public RecipeListViewModel(Application application){
+        super(application);
     }
 
-    // querying is (performing a query)...
-    public void setIsQuerying(boolean isQuerying){
-        this.isQuerying = isQuerying ;
-    }
-    // querying is (performing a query)...
-    public boolean isQuerying(){
-        return this.isQuerying ;
-    }
-
-    public LiveData<List<Recipe>> getRecipes(){return mRecipeRepository.getRecipes();}
-
-    public void searchRecipesApi(String query , int pageNo){
-        this.mIsViewingRecipies = true ;
-        this.isQuerying = true ;
-        mRecipeRepository.searchRecipesApi(query , pageNo);
-    }
-
-
-    public boolean getIsViewingRecipes(){
-        return this.mIsViewingRecipies ;
-    }
-
-
-    public void setIsViewingRecipies(boolean isViewingRecipies){
-        this.mIsViewingRecipies = isViewingRecipies ;
-    }
-    public boolean onBackPressed(){
-        if(isQuerying) {
-            // cancel the query...
-            mRecipeRepository.cancelRequest();
-            isQuerying = false;
-        }
-        if(mIsViewingRecipies){
-            Log.d(TAG,"displaying recipies - on back button pressed...");
-            mIsViewingRecipies = false ;
-            return false ;
-        }
-
-        Log.d(TAG,"displaying categories - on back button pressed...");
-        return true ;
-    }
-    public LiveData<Boolean> isQueryEchausted(){
-        return mRecipeRepository.isQueryExhausted() ;
-    }
-
-
-    public void nextPage(){
-        if(!isQuerying && mIsViewingRecipies && !isQueryEchausted().getValue()){
-            mRecipeRepository.nextPage();
+    private void init(){
+        if(viewState == null){
+            viewState = new MutableLiveData<>();
+            viewState.setValue(ViewState.CATEGORIES);
         }
     }
+
+
+    public LiveData<ViewState> getViewState(){
+        return viewState ;
+    }
+
 
 }
