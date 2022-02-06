@@ -13,9 +13,11 @@ import com.tatsujin.recipe.models.Recipe;
 import com.tatsujin.recipe.persistence.RecipeDAO;
 import com.tatsujin.recipe.persistence.RecipeDatabase;
 import com.tatsujin.recipe.requests.RecipeAPIClient;
+import com.tatsujin.recipe.requests.ServiceGenerator;
 import com.tatsujin.recipe.requests.responses.ApiResponse;
 import com.tatsujin.recipe.requests.responses.RecipeSearchResponse;
 import com.tatsujin.recipe.utils.AppExecutors;
+import com.tatsujin.recipe.utils.Constants;
 import com.tatsujin.recipe.utils.NetworkBoundResource;
 import com.tatsujin.recipe.utils.Resource;
 
@@ -66,7 +68,7 @@ public class RecipeRepository {
             protected LiveData<ApiResponse<RecipeSearchResponse>> createCall() {
 
 
-                return null;
+                return ServiceGenerator.getRecipeApi().searchRecipe(Constants.API_KEY , query , String.valueOf(pageNumber));
             }
         }.getAsLiveData();
     }
