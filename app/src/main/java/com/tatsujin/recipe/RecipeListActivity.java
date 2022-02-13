@@ -25,6 +25,7 @@ import com.tatsujin.recipe.requests.RecipeApi;
 import com.tatsujin.recipe.requests.ServiceGenerator;
 import com.tatsujin.recipe.requests.responses.RecipeResponse;
 import com.tatsujin.recipe.utils.Constants;
+import com.tatsujin.recipe.utils.Resource;
 import com.tatsujin.recipe.utils.Testing;
 import com.tatsujin.recipe.utils.VerticalSpacingItemDecorator;
 import com.tatsujin.recipe.viewmodels.RecipeListViewModel;
@@ -83,6 +84,20 @@ public class RecipeListActivity extends BaseActivity implements onRecipeListener
     }
 
     private void subscribeObservers(){
+        mRecipeListViewModel.getRecipes().observe(this, new Observer<Resource<List<Recipe>>>() {
+            @Override
+            public void onChanged(Resource<List<Recipe>> listResource) {
+                if(listResource != null){
+                    Log.d(TAG, "onChanged status : " + listResource.status);
+
+                    if(listResource.data != null){
+                        Testing.printRecipes(listResource.data , "data");
+                    }
+                }
+            }
+        });
+
+
         mRecipeListViewModel.getViewState().observe(this, new Observer<RecipeListViewModel.ViewState>() {
             @Override
             public void onChanged(RecipeListViewModel.ViewState viewState) {
@@ -102,6 +117,9 @@ public class RecipeListActivity extends BaseActivity implements onRecipeListener
 
 
 
+    private void searchRecipesAPI(String query) {
+        mRecipeListViewModel.searchRecipesAPI(query, 1 );
+    }
 
     private void searchRecipesApi(String query , int pageNo){
     }
@@ -116,8 +134,7 @@ public class RecipeListActivity extends BaseActivity implements onRecipeListener
         mSearchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
-                adapter.displayLoading();
-                mSearchView.clearFocus();
+                searchRecipesAPI(query);
                 return false;
             }
 
@@ -141,37 +158,6 @@ public class RecipeListActivity extends BaseActivity implements onRecipeListener
 
 
 
-    private void testGetRecipe(){
-            RecipeApi api  = ServiceGenerator.getRecipeApi() ;
-
-            Call<RecipeResponse> recipeResponseCall = api.getRecipe(Constants.API_KEY ,"8c0314" );
-            recipeResponseCall.enqueue(new Callback<RecipeResponse>() {
-                @Override
-                public void onResponse(Call<RecipeResponse> call, Response<RecipeResponse> response) {
-                    Log.d(TAG , "onResponse-Server-recipe" + response.toString() );
-                    if(response.code() == 200){
-                        Recipe recipe = response.body().getRecipe() ;
-                        Log.d(TAG , "onResponse-Recipe :"+ recipe.toString());
-                    }else{
-                        try{
-                            Log.e(TAG , "onResponse: " + response.errorBody().string());
-                        }catch(IOException ioe){
-                            ioe.printStackTrace();
-                        }
-                    }
-                }
-
-                @Override
-                public void onFailure(Call<RecipeResponse> call, Throwable t) {
-
-                }
-            });
-
-
-
-
-
-    }
 
     @Override
     public void onRecipeClick(int position) {
@@ -182,8 +168,7 @@ public class RecipeListActivity extends BaseActivity implements onRecipeListener
 
     @Override
     public void onCategoryClick(String category) {
-        adapter.displayLoading();
-        mSearchView.clearFocus();
+        searchRecipesAPI(category);
     }
 
 

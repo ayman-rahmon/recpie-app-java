@@ -1,18 +1,17 @@
 package com.tatsujin.recipe.repositories;
 
 import android.content.Context;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MediatorLiveData;
 import androidx.lifecycle.MutableLiveData;
-import androidx.lifecycle.Observer;
 
 import com.tatsujin.recipe.models.Recipe;
 import com.tatsujin.recipe.persistence.RecipeDAO;
 import com.tatsujin.recipe.persistence.RecipeDatabase;
-import com.tatsujin.recipe.requests.RecipeAPIClient;
 import com.tatsujin.recipe.requests.ServiceGenerator;
 import com.tatsujin.recipe.requests.responses.ApiResponse;
 import com.tatsujin.recipe.requests.responses.RecipeSearchResponse;
@@ -27,13 +26,12 @@ public class RecipeRepository {
 
     private static RecipeRepository instance;
     private RecipeDAO recipeDAO ;
-    private RecipeAPIClient mRecipeAPIClient ;
     private String mQuery ;
     private int mPageNo ;
     private MutableLiveData<Boolean> mIsQueryExhausted= new MutableLiveData<>();
     private MediatorLiveData<List<Recipe>> mRecipes = new MediatorLiveData<>();
 
-
+    private static final String TAG = "RecipeRepository";
     public static RecipeRepository getInstance(Context context) {
         if (instance == null) {
             instance = new RecipeRepository(context);
@@ -49,6 +47,30 @@ public class RecipeRepository {
         return new NetworkBoundResource<List<Recipe> , RecipeSearchResponse>(AppExecutors.getInstance()){
             @Override
             protected void saveCallResult(@NonNull RecipeSearchResponse item) {
+                if(item.getRecipes() != null) {
+                    Recipe[] recipes = new Recipe[item.getRecipes().size()];
+
+                    int index = 0 ;
+                    // insert recipes in the db with keeping in mind to ignore
+                    for(long rowid :recipeDAO.insertRecipes((Recipe[]) item.getRecipes().toArray(recipes))){
+                            // if the recipe already exist ... don't want to set the ingredients or timestamp
+                            // they will be erased...
+                        if(rowid == -1){ // there is a conflict .... update instead...
+                            Log.d(TAG , "conflict ..." );
+                            recipeDAO.updateRecipe(
+                                    recipes[index].getRecipe_id() ,
+                                    recipes[index].getTitle() ,
+                                    recipes[index].getPublisher() ,
+                                    recipes[index].getImage_url() ,
+                                    recipes[index].getSocial_rank()
+                                    );
+                        }
+                        index++;
+                    }
+
+                }
+
+
 
             }
 

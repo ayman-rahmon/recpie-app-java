@@ -17,6 +17,7 @@ public class Recipe implements Parcelable {
     private String publisher ;;
     @ColumnInfo()
     private String[] ingredients ;
+    @NonNull
     @PrimaryKey
     private String recipe_id ;
     @ColumnInfo()

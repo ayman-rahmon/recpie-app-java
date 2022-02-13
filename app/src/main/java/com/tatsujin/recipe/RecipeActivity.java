@@ -51,25 +51,6 @@ public class RecipeActivity extends BaseActivity{
 
 
     private void subscribeObservers(){
-        mrecipeActivityViewModel.getRecipe().observe(this, new Observer<Recipe>() {
-            @Override
-            public void onChanged(Recipe recipe) {
-                if(recipe != null){
-                    if(recipe.getRecipe_id().equals(mrecipeActivityViewModel.getRecipeID())){
-                        setRecipeProperties(recipe);
-                        mrecipeActivityViewModel.setmGotRecipe(true);
-                    }
-                }
-            }
-        });
-        mrecipeActivityViewModel.isRecipeRequestTimedOut().observe(this, new Observer<Boolean>() {
-            @Override
-            public void onChanged(Boolean aBoolean) {
-                if(aBoolean && !mrecipeActivityViewModel.ismGotRecipe()){
-                    displayErrorScreen("Error retrieving data. Check network connection");
-                }
-            }
-        });
 
     }
 
@@ -78,7 +59,7 @@ public class RecipeActivity extends BaseActivity{
         if(getIntent().hasExtra("recipe")){
             Recipe recipe = getIntent().getParcelableExtra("recipe");
             Log.d(TAG , "getIncomingIntent ::" +  recipe.getTitle());
-            mrecipeActivityViewModel.getDetails(recipe.getRecipe_id());
+//            mrecipeActivityViewModel.getDetails(recipe.getRecipe_id());
         }
     }
 
