@@ -17,6 +17,11 @@ public class RecipeSearchResponse {
     @Expose()
     private List<Recipe> recipes ;
 
+    @SerializedName("error")
+    @Expose()
+    private String error;
+
+
 
     public int getCount() {
         return count ;
@@ -26,10 +31,16 @@ public class RecipeSearchResponse {
         return recipes ;
     }
 
+    public String getError() {
+        return error;
+    }
 
-    @NonNull
     @Override
     public String toString() {
-        return "RecipeSearchRequest {" + "count="+count + ",recipes="+recipes +"}";
+        return "RecipeSearchResponse{" +
+                "count=" + count +
+                ", recipes=" + recipes +
+                ", error='" + error + '\'' +
+                '}';
     }
 }

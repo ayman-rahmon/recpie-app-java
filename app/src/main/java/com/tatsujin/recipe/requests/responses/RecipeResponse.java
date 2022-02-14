@@ -11,14 +11,24 @@ public class RecipeResponse {
     @Expose()
     private Recipe recipe ;
 
+    @SerializedName("error")
+    @Expose()
+    private String error ;
+
 
     public Recipe getRecipe(){
         return recipe ;
     }
 
-    @NonNull
+    public String getError() {
+        return error;
+    }
+
     @Override
     public String toString() {
-        return "RecipeResponse{"+ "recipe=" + recipe + "}";
+        return "RecipeResponse{" +
+                "recipe=" + recipe +
+                ", error='" + error + '\'' +
+                '}';
     }
 }

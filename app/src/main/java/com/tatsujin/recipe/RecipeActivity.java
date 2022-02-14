@@ -19,6 +19,7 @@ import androidx.lifecycle.ViewModelProvider;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
 import com.tatsujin.recipe.models.Recipe;
+import com.tatsujin.recipe.utils.Resource;
 import com.tatsujin.recipe.viewmodels.RecipeActivityViewModel;
 
 public class RecipeActivity extends BaseActivity{
@@ -44,22 +45,55 @@ public class RecipeActivity extends BaseActivity{
 
         mrecipeActivityViewModel = new ViewModelProvider(this).get(RecipeActivityViewModel.class);
         showProgressBar(true);
-        subscribeObservers();
         getIncomingIntent();
 
     }
 
 
-    private void subscribeObservers(){
+    private void subscribeObservers(final String recipeID){
+        mrecipeActivityViewModel.searchRecipeAPI(recipeID).observe(this, new Observer<Resource<Recipe>>() {
+            @Override
+            public void onChanged(Resource<Recipe> recipeResource) {
+                if(recipeResource != null){
+                    if(recipeResource.data != null){
+                        switch(recipeResource.status){
+                            case LOADING:{
+                                showProgressBar(true);
+                                break ;
+                            }
+                            case ERROR: {
+                                Log.e(TAG , "onChanged: status ERROR , Recipe : " + recipeResource.data.getTitle());
+                                Log.e(TAG , "onChanged: ERROR Message :" + recipeResource.message);
+                                showParent();
+                                showProgressBar(false);
+                                setRecipeProperties(recipeResource.data);
+                                break;
+                            }
+                            case SUCCESS: {
+                                Log.d(TAG, "onChanged : cache has been refreshed.");
+                                Log.d(TAG , "onChanged : status: SUCCESS , Recipe" + recipeResource.data.getTitle() );
+                                showParent();
+                                showProgressBar(false);
+                                setRecipeProperties(recipeResource.data);
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
 
     }
+
+
 
 
     private void getIncomingIntent(){
         if(getIntent().hasExtra("recipe")){
             Recipe recipe = getIntent().getParcelableExtra("recipe");
             Log.d(TAG , "getIncomingIntent ::" +  recipe.getTitle());
-//            mrecipeActivityViewModel.getDetails(recipe.getRecipe_id());
+            subscribeObservers(recipe.getRecipe_id());
         }
     }
 
@@ -85,7 +119,7 @@ public class RecipeActivity extends BaseActivity{
 
     private void setRecipeProperties(Recipe recipe ){
         if(recipe != null){
-            RequestOptions requestOptions = new RequestOptions().placeholder(R.drawable.ic_launcher_background);
+            RequestOptions requestOptions = new RequestOptions().placeholder(R.drawable.white_background).error(R.drawable.white_background);
             Glide.with(this).setDefaultRequestOptions(requestOptions).load(recipe.getImage_url()).into(mImage);
             mTitle.setText(recipe.getTitle());
             mRank.setText(String.valueOf(Math.round(recipe.getSocial_rank())));

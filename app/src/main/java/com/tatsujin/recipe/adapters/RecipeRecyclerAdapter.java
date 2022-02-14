@@ -3,25 +3,33 @@ package com.tatsujin.recipe.adapters;
 import android.app.DownloadManager;
 import android.app.RemoteInput;
 import android.net.Uri;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.constraintlayout.widget.ConstraintSet;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.ListPreloader;
+import com.bumptech.glide.RequestBuilder;
+import com.bumptech.glide.RequestManager;
 import com.bumptech.glide.request.RequestOptions;
+import com.bumptech.glide.util.ViewPreloadSizeProvider;
 import com.tatsujin.recipe.R;
 import com.tatsujin.recipe.models.Recipe;
 import com.tatsujin.recipe.utils.Constants;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
-public class RecipeRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+public class RecipeRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> implements ListPreloader.PreloadModelProvider<String> {
 
     private static final int RECIPE_TYPE = 1;
     private static final int LOADING_TYPE = 2;
@@ -33,9 +41,14 @@ public class RecipeRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.Vie
 
     private onRecipeListener mOnRecipeListener;
 
+    private RequestManager requestManager ;
 
-    public RecipeRecyclerAdapter(onRecipeListener mOnRecipeListener) {
+    private ViewPreloadSizeProvider<String> preloadSizeProvider ;
+
+    public RecipeRecyclerAdapter(onRecipeListener mOnRecipeListener , RequestManager requestManager , ViewPreloadSizeProvider<String> preloadSizeProvider) {
         this.mOnRecipeListener = mOnRecipeListener;
+        this.requestManager = requestManager ;
+        this.preloadSizeProvider = preloadSizeProvider ;
     }
 
     @NonNull
@@ -47,20 +60,20 @@ public class RecipeRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.Vie
         switch (viewType) {
             case RECIPE_TYPE:
                 view = LayoutInflater.from(parent.getContext()).inflate(R.layout.layout_recipe_list_item, parent, false);
-                return new RecipeViewHolder(view, mOnRecipeListener);
+                return new RecipeViewHolder(view, mOnRecipeListener ,requestManager , preloadSizeProvider);
             case LOADING_TYPE:
                 view = LayoutInflater.from(parent.getContext()).inflate(R.layout.layout_loading_list_item, parent, false);
                 return new LoadingViewHolder(view);
             case CATEGORIES_TYPE:
                 view = LayoutInflater.from(parent.getContext()).inflate(R.layout.layout_category_list_item, parent, false);
-                return new CategoryViewHolder(view, mOnRecipeListener);
+                return new CategoryViewHolder(view, mOnRecipeListener , requestManager);
             case EXHAUSTED_TYPE:
                 view = LayoutInflater.from(parent.getContext()).inflate(R.layout.layout_search_exhausted, parent, false);
                 return new SearchExhaustedViewHolde(view);
 
             default:
                 view = LayoutInflater.from(parent.getContext()).inflate(R.layout.layout_recipe_list_item, parent, false);
-                return new RecipeViewHolder(view, mOnRecipeListener);
+                return new RecipeViewHolder(view, mOnRecipeListener ,requestManager , preloadSizeProvider);
 
         }
 
@@ -73,22 +86,9 @@ public class RecipeRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.Vie
         int itemViewType = getItemViewType(position);
 
         if (itemViewType == RECIPE_TYPE) {
-            RequestOptions requestOptions = new RequestOptions().placeholder(R.drawable.ic_launcher_background);
-            Glide.with(holder.itemView.getContext())
-                    .setDefaultRequestOptions(requestOptions)
-                    .load(mRecipes.get(position).getImage_url())
-                    .into(((RecipeViewHolder) holder).image);
-
-            ((RecipeViewHolder) holder).title.setText(mRecipes.get(position).getTitle());
-            ((RecipeViewHolder) holder).publisher.setText(mRecipes.get(position).getPublisher());
-            ((RecipeViewHolder) holder).socialScore.setText(String.valueOf(Math.round(mRecipes.get(position).getSocial_rank())));
+            ((RecipeViewHolder)holder).onBind(mRecipes.get(position));
         } else if (itemViewType == CATEGORIES_TYPE) {
-            RequestOptions requestOption = new RequestOptions().placeholder(R.drawable.ic_launcher_background);
-            // TODO(2) fix the uri for displaying the images properly...
-            Uri path = Uri.parse("android.resource://com.tatsujin.recipe/drawable/" + mRecipes.get(position).getImage_url());
-            Glide.with(holder.itemView.getContext()).setDefaultRequestOptions(requestOption).load(path).into(((CategoryViewHolder) holder).categoryImage);
-            ((CategoryViewHolder)holder).categoryTitle.setText(mRecipes.get(position).getTitle());
-
+            ((CategoryViewHolder)holder).onBind(mRecipes.get(position));
         }
 
 
@@ -103,14 +103,30 @@ public class RecipeRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.Vie
             return LOADING_TYPE;
         }else if(mRecipes.get(position).getTitle().equals("EXHAUSTED")){
             return EXHAUSTED_TYPE ;
-        }else if(position == mRecipes.size()-1 && position !=0 && !mRecipes.get(position).getTitle().equals("EXHAUSTED")) {
-            return LOADING_TYPE ;
         } else {
             return RECIPE_TYPE;
         }
 
     }
 
+
+    // display loading during search request...
+    public void displayOnlyLoading(){
+        clearRecipesList();
+        Recipe recipe = new Recipe() ;
+        recipe.setTitle("LOADING");
+        mRecipes.add(recipe);
+        notifyDataSetChanged();
+    }
+
+    private void clearRecipesList(){
+        if(mRecipes == null){
+            mRecipes = new ArrayList<>();
+        }else{
+            mRecipes.clear();
+        }
+        notifyDataSetChanged();
+    }
     public void setQueryEhausted(){
         hideLoading();
         Recipe exhaustedRecipe = new Recipe();
@@ -120,12 +136,12 @@ public class RecipeRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.Vie
 
     }
 
-    private void hideLoading() {
+    public void hideLoading() {
         if(isLoading()){
-            for(Recipe recipe : mRecipes){
-                if(recipe.getTitle().equals("LOADING")){
-                    mRecipes.remove(recipe);
-                }
+            if(mRecipes.get(0).getTitle().equals("LOADING")){
+                mRecipes.remove(0);
+            } else if(mRecipes.get(mRecipes.size()-1).equals("LOADING")){
+                mRecipes.remove(mRecipes.size()-1);
             }
             notifyDataSetChanged();
         }
@@ -154,13 +170,16 @@ public class RecipeRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.Vie
         notifyDataSetChanged();
     }
 
+
+    // pagination... loading...
     public void displayLoading() {
+        if(mRecipes == null){
+            mRecipes = new ArrayList<>();
+        }
         if (!isLoading()) {
             Recipe recipe = new Recipe();
             recipe.setTitle("LOADING");
-            List<Recipe> loadingList = new ArrayList<>();
-            loadingList.add(recipe);
-            mRecipes = loadingList;
+            mRecipes.add(recipe);
             notifyDataSetChanged();
         }
     }
@@ -188,5 +207,21 @@ public class RecipeRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.Vie
             return mRecipes.size();
         }
         return 0;
+    }
+
+    @NonNull
+    @Override
+    public List<String> getPreloadItems(int position) {
+        String url = mRecipes.get(position).getImage_url();
+        if(TextUtils.isEmpty(url)){
+            return Collections.emptyList();
+        }
+        return Collections.singletonList(url);
+    }
+
+    @Nullable
+    @Override
+    public RequestBuilder<?> getPreloadRequestBuilder(@NonNull String item) {
+        return requestManager.load(item);
     }
 }

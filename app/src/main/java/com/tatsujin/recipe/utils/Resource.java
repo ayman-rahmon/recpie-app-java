@@ -6,7 +6,7 @@ public class Resource<T> {
     public final String message ;
     public enum Status {SUCCESS , ERROR , LOADING};
 
-    private Resource(Status status , T data , String message){
+    public Resource(Status status, T data, String message){
         this.status  = status ;
         this.data = data;
         this.message = message ;
