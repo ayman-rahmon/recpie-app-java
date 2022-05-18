@@ -4,20 +4,22 @@
 This project is part of multiple projects that i’m building for my android portfolio and for practice.
 
 
+## Screenshots:
 
-
-
-
+[!picture number one](/images/pic1.png)
+[!screenshot2](/images/pic2.png)
+[!screenshot3](/images/pic3.png)
+[!screenshot4](/images/pic4.png)
 
 
 
 ## Things implemented in this project :
 
-1- Communicating with a web service (rest API) using Retrofit2 
+1- Communicating with a web service (rest API) using Retrofit2
 
 2-  MVVM architecture: ViewModel, Repository, Client structure
 
-3- singletons 
+3- singletons
 
 4- Custom Loading Animation ProgressBar in RecyclerView.
 
@@ -37,7 +39,8 @@ This project is part of multiple projects that i’m building for my android por
 
 12- SearchViews
 
-13- Menus. 
+13- Menus.
+
 14- Passing data between activities using intent extras.
 
 15 - Executors and background threads.
