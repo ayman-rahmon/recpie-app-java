@@ -14,7 +14,9 @@ This project is part of multiple projects that i’m building for my android por
 ## Things implemented in this project :
 
 1- Communicating with a web service (rest API) using Retrofit2 
+
 2-  MVVM architecture: ViewModel, Repository, Client structure
+
 3- singletons 
 4- Custom Loading Animation ProgressBar in RecyclerView.
 5- Multiple View types in a recycler view.
